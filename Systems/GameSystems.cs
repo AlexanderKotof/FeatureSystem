@@ -1,26 +1,12 @@
-﻿using System;
+﻿using FeatureSystem.Singleton;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace FeatureSystem.Systems
 {
-    public class GameSystems : MonoBehaviour
+    public class GameSystems : MonoBehaviourSingletonLazy<GameSystems>
     {
-        private static GameSystems Instance
-        {
-            get 
-            {
-                if (_instance == null)
-                    CreateInstance();
-
-                return _instance;
-            }
-            set
-            {
-                _instance = value;
-            }
-        }
-        private static GameSystems _instance;
         public static Dictionary<Type, ISystem> Systems => Instance._systems;
 
         private Dictionary<Type, ISystem> _systems = new Dictionary<Type, ISystem>();
@@ -31,13 +17,8 @@ namespace FeatureSystem.Systems
 
         public void Awake()
         {
-            _instance = this;
+            Instance = this;
             DontDestroyOnLoad(this);
-        }
-
-        private static void CreateInstance()
-        {
-            _instance = new GameObject(nameof(GameSystems)).AddComponent<GameSystems>();
         }
 
         private void Update()
