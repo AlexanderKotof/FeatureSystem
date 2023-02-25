@@ -6,8 +6,22 @@ namespace FeatureSystem.Systems
 {
     public class GameSystems : MonoBehaviour
     {
+        private static GameSystems Instance
+        {
+            get 
+            {
+                if (_instance == null)
+                    CreateInstance();
+
+                return _instance;
+            }
+            set
+            {
+                _instance = value;
+            }
+        }
         private static GameSystems _instance;
-        public static Dictionary<Type, ISystem> Systems => _instance._systems;
+        public static Dictionary<Type, ISystem> Systems => Instance._systems;
 
         private Dictionary<Type, ISystem> _systems = new Dictionary<Type, ISystem>();
 
@@ -17,8 +31,13 @@ namespace FeatureSystem.Systems
 
         public void Awake()
         {
-            DontDestroyOnLoad(this);
             _instance = this;
+            DontDestroyOnLoad(this);
+        }
+
+        private static void CreateInstance()
+        {
+            _instance = new GameObject(nameof(GameSystems)).AddComponent<GameSystems>();
         }
 
         private void Update()
@@ -31,19 +50,19 @@ namespace FeatureSystem.Systems
 
         public static void RegisterSystem(ISystem system)
         {
-            _instance._systems.Add(system.GetType(), system);
+            Instance._systems.Add(system.GetType(), system);
 
             if (system is ISystemUpdate updateSystem)
             {
-                _instance._updateSystems.Add(updateSystem);
+                Instance._updateSystems.Add(updateSystem);
             }
 
-            _instance._isStoped = false;
+            Instance._isStoped = false;
         }
 
         public static T GetSystem<T>() where T : ISystem
         {
-            if (_instance._systems.TryGetValue(typeof(T), out var system))
+            if (Instance._systems.TryGetValue(typeof(T), out var system))
                 return (T)system;
 
             Debug.LogError($"No system of type {typeof(T).Name} was founded!");
@@ -61,15 +80,15 @@ namespace FeatureSystem.Systems
 
         public static void DestroySystems()
         {
-            _instance._isStoped = true;
+            Instance._isStoped = true;
 
-            foreach (var system in _instance._systems.Values)
+            foreach (var system in Instance._systems.Values)
             {
                 system.Destroy();
             }
 
-            _instance._systems.Clear();
-            _instance._updateSystems.Clear();
+            Instance._systems.Clear();
+            Instance._updateSystems.Clear();
 
             GC.Collect();
         }
