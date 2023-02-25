@@ -9,13 +9,18 @@ namespace FeatureSystem.Features
     {
         public Feature[] features;
 
+        public bool AutoStart = false;
+
+        public bool AutoDestroy = false;
+
         private static Features _instance;
 
         private readonly Dictionary<Type, IFeature> _typesToFeature = new Dictionary<Type, IFeature>();
 
         private void Awake()
         {
-            DontDestroyOnLoad(this);
+            if (!AutoDestroy)
+                DontDestroyOnLoad(this);
 
             _instance = this;
 
@@ -23,6 +28,18 @@ namespace FeatureSystem.Features
             {
                 _typesToFeature.Add(feature.GetType(), feature);
             }
+        }
+
+        private void Start()
+        {
+            if (AutoStart)
+                InitializeFeaturesAndSystems();
+        }
+
+        private void OnDestroy()
+        {
+            if (AutoDestroy)
+                GameSystems.DestroySystems();
         }
 
         public static Feature[] GetFeatures()
